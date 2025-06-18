@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.v1.router import v1_router
@@ -25,13 +26,15 @@ if __name__ == "__main__":
     # Load environment variables from .env file
     from dotenv import load_dotenv
     load_dotenv()
-
+    # Host and port configuration
+    host = os.getenv("HOST", "localhost")
+    port = int(os.getenv("PORT", 8000))
     # Start the SMTP console server
     smtp_server = SMTPConsoleServer()
     smtp_server.start()
 
     # Run the FastAPI application
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host=host, port=port)
 
 
 
