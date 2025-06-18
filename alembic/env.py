@@ -6,7 +6,9 @@ from sqlalchemy import pool
 from alembic import context
 
 from db.models import Base  # Import your Base model here
-from db.models.users import UserModel 
+from db.models.users import *
+from db.models.books import *
+
 
 import sys
 import os
