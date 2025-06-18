@@ -1,4 +1,5 @@
 import os
+import csv
 from fastapi import APIRouter
 from fastapi import UploadFile, File
 from db import get_session
@@ -6,6 +7,9 @@ from sqlalchemy.orm import Session
 from fastapi import Depends, HTTPException
 from services.auth import confirm_staff_token, get_current_staff_user
 from schema.users import LoggedInStaffUser
+from schema.books import BookCreate
+from db.models.books import BookModel
+from fastapi import status
 
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -56,13 +60,45 @@ async def rental_report(staff_user: LoggedInStaffUser = Depends(get_current_staf
 
 
 @router.post("/books/bulk-create")
-async def bulk_upload(staff_user: LoggedInStaffUser = Depends(get_current_staff_user), db :Session = Depends(get_session), file: UploadFile = File(...)):
-    """
-    Bulk upload items for an admin.
-    """
-    
-    # Placeholder for actual implementation
-    return {"message": "Bulk upload completed successfully"}
+async def bulk_upload(
+    staff_user: LoggedInStaffUser = Depends(get_current_staff_user),
+    db: Session = Depends(get_session),
+    file: UploadFile = File(...)
+):
+    if not staff_user.is_staff:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized")
+    if file.content_type not in ["text/csv", "application/vnd.ms-excel"]:
+        raise HTTPException(status_code=400, detail="File must be a CSV")
+    contents = await file.read()
+    if len(contents) > 10 * 1024 * 1024: # Max !0 MB
+        raise HTTPException(status_code=400, detail="File too large (max 10MB)")
+    decoded = contents.decode("utf-8")
+    reader = csv.DictReader(decoded.splitlines())
+    created = 0
+    for row in reader:
+        try:
+            book_data = BookCreate(
+                isbn=row["ISBN"],
+                authors=row["Authors"],
+                publication_year=int(row["Publication Year"]),
+                title=row["Title"],
+                language=row["Language"],
+                rental_status="available"
+            )
+            book = BookModel(
+                isbn=book_data.isbn,
+                authors=book_data.authors,
+                publication_year=book_data.publication_year,
+                title=book_data.title,
+                language=book_data.language,
+                rental_status=book_data.rental_status
+            )
+            db.add(book)
+            created += 1
+        except Exception as e:
+            continue  # skip invalid rows
+    db.commit()
+    return {"message": f"Bulk upload completed successfully. {created} books added."}
 
 
 @router.get("/books/update-amazon-ids")
