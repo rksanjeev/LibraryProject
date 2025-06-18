@@ -31,7 +31,7 @@ ALGORITHM = os.environ.get("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", 30)
 JWT_SECRET_KEY = os.environ.get("JWT_SECRET_KEY", "default-jwt-secret")
 JWT_REFRESH_SECRET_KEY = os.environ.get("JWT_REFRESH_SECRET_KEY", "default-jwt-refresh-secret")
-REFRESH_TOKEN_EXPIRE_MINUTES = os.environ.get("REFRESH_TOKEN_EXPIRE_MINUTES", 30*7)
+REFRESH_TOKEN_EXPIRE_MINUTES = os.environ.get("REFRESH_TOKEN_EXPIRE_MINUTES", 3000)
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
 
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -117,25 +117,16 @@ def confirm_staff_token(token: str, session: Session):
     return user
 
 
-def create_access_token(subject: Union[str, Any], expires_delta: int = 0) -> str:
-    from datetime import timezone
-    if expires_delta is not None:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=expires_delta)
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))
-
+def create_access_token(subject: Union[str, Any], expires_delta: int = int(ACCESS_TOKEN_EXPIRE_MINUTES)) -> str:
+    expire = datetime.now(timezone.utc) + timedelta(minutes=expires_delta) 
     to_encode = {"exp": expire, "sub": str(subject)}
-    encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, JWT_ALGORITHM)
     return encoded_jwt
 
-def create_refresh_token(subject: Union[str, Any], expires_delta: int = 0) -> str:
-    if expires_delta is not None:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=expires_delta)
-    else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=int(REFRESH_TOKEN_EXPIRE_MINUTES))
-
+def create_refresh_token(subject: Union[str, Any], expires_delta: int = int(REFRESH_TOKEN_EXPIRE_MINUTES)) -> str:
+    expire = datetime.now(timezone.utc) + timedelta(minutes=expires_delta)
     to_encode = {"exp": expire, "sub": str(subject)}
-    encoded_jwt = jwt.encode(to_encode, JWT_REFRESH_SECRET_KEY, ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, JWT_REFRESH_SECRET_KEY, JWT_ALGORITHM)
     return encoded_jwt
 
 def authenticate_user(username: str, password: str, session: Session):
@@ -159,7 +150,7 @@ def authenticate_user(username: str, password: str, session: Session):
 def get_current_user(token: str = Depends(reuseable_oauth), session: Session = Depends(get_session)) -> LoggedInUser:
     try:
         payload = jwt.decode(
-            token, JWT_SECRET_KEY, algorithms=[ALGORITHM]
+            token, key=JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM]
         )
         token_data = TokenPayload(**payload)
 
@@ -182,8 +173,13 @@ def get_current_user(token: str = Depends(reuseable_oauth), session: Session = D
             status_code=404,
             detail="Could not find user",
         )
-    user = LoggedInUser.model_validate(user)
-    return user
+    logged_in_user = LoggedInUser(
+    id=int(user.id),
+    username=str(user.username),
+    email=str(user.email),
+    is_active=bool(user.is_active)  
+    )
+    return logged_in_user
 
 def get_current_staff_user(token: str = Depends(reuseable_oauth), session: Session = Depends(get_session)) -> LoggedInStaffUser:
     try:
@@ -211,6 +207,12 @@ def get_current_staff_user(token: str = Depends(reuseable_oauth), session: Sessi
             status_code=404,
             detail="Could not find staff user",
         )
-    user = LoggedInStaffUser.model_validate(user)
-    return user
+    logged_in_user = LoggedInStaffUser(
+    id=int(user.id),
+    username=str(user.username),
+    email=str(user.email),
+    is_active=bool(user.is_active),
+    is_staff=bool(user.is_staff)
+    )
+    return logged_in_user
 

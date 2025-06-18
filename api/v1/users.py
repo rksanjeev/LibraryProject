@@ -87,7 +87,6 @@ def search_books(
 @router.post("/request-staff-access")
 def request_staff_access(
     background_tasks: BackgroundTasks,
-    db: Session = Depends(get_session),
     user: LoggedInUser = Depends(get_current_user)
 ):
     if not user:
