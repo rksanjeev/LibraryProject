@@ -17,7 +17,7 @@ A FastAPI-based backend for a library system with user authentication, book mana
 
 ### 1. Clone the repository
 ```bash
-git clone <repo-url>
+git clone https://github.com/rksanjeev/LibraryProject.git
 cd LibProject
 ```
 
