@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List, Literal
+from datetime import datetime
 
 class BookBase(BaseModel):
     isbn: str = Field(..., description="ISBN number")
@@ -26,3 +27,17 @@ class Wishlist(WishlistBase):
     id: int
     class Config:
         orm_mode = True
+
+class RentalBase(BaseModel):
+    user_id: int = Field(..., description="ID of the user")
+    book_id: int = Field(..., description="ID of the book")
+    rental_date: datetime = Field(..., description="Date of rental")
+
+class Rental(RentalBase):
+    id: int
+    class Config:
+        orm_mode = True
+
+class RentalRequest(BaseModel):
+    user: int = Field(..., description="User ID")
+    books: int = Field(..., description="Book ID")

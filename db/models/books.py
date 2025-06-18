@@ -1,7 +1,8 @@
-from sqlalchemy import Column, Integer, String, Enum, Table, ForeignKey
+from sqlalchemy import Column, Integer, String, Enum, Table, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 import enum
 from db.models import Base
+from datetime import datetime
 
 class RentalStatusEnum(str, enum.Enum):
     available = "available"
@@ -37,3 +38,13 @@ class WishlistModel(Base):
 
     def __repr__(self):
         return f"<Wishlist(id={self.id}, user_id={self.user_id})>"
+
+class RentalModel(Base):
+    __tablename__ = 'rentals'
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    book_id = Column(Integer, ForeignKey('books.id'), nullable=False)
+    rental_date = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    def __repr__(self):
+        return f"<Rental(id={self.id}, user_id={self.user_id}, book_id={self.book_id}, rental_date={self.rental_date})>"
