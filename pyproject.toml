@@ -1,0 +1,31 @@
+[project]
+name = "libraryproject"
+version = "0.1.0"
+description = "Library project"
+authors = [
+    {name = "Sanjeev Kumar"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi (>=0.115.13,<0.116.0)",
+    "aiosmtpd (>=1.4.6,<2.0.0)",
+    "python-dotenv (>=1.1.0,<2.0.0)",
+    "aiosmtplib (>=4.0.1,<5.0.0)",
+    "tenacity (>=9.1.2,<10.0.0)",
+    "uvicorn (>=0.34.3,<0.35.0)",
+    "alembic (>=1.16.2,<2.0.0)",
+    "sqlalchemy (>=2.0.41,<3.0.0)",
+    "aiosqlite (>=0.21.0,<0.22.0)",
+    "python-jose[cryptography] (>=3.5.0,<4.0.0)",
+    "passlib[bcrypt] (>=1.7.4,<2.0.0)",
+    "python-multipart (>=0.0.20,<0.0.21)",
+    "email-validator (>=2.2.0,<3.0.0)",
+    "itsdangerous (>=2.2.0,<3.0.0)",
+    "greenlet (>=3.2.3,<4.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
