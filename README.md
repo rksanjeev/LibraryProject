@@ -53,7 +53,7 @@ alembic upgrade head
 
 ### 5. Start the server
 ```bash
-uvicorn main:app --reload
+python main.py
 ```
 
 ### 6. Run tests
